@@ -168,11 +168,50 @@ class UI {
     clearCartBtn.addEventListener('click', () => this.clearCart());
 
     // cart functionality
+    cartContent.addEventListener('click', event => {
+      if (event.target.classList.contains('remove-item')) {
+        const removeItem = event.target;
+        const id = removeItem.dataset.id;
+
+        cartContent.removeChild(removeItem.parentElement.parentElement);
+        this.removeItem(id);
+      } else if (event.target.classList.contains('fa-chevron-up')) {
+        const addAmount = event.target;
+        const id = addAmount.dataset.id;
+        const tempItem = cart.find(item => item.id === id);
+        tempItem.amount = tempItem.amount + 1;
+
+        Storage.saveCart(cart);
+        this.setCartValues(cart);
+
+        addAmount.nextElementSibling.innerText = tempItem.amount;
+      } else if (event.target.classList.contains('fa-chevron-down')) {
+        const lesserAmount = event.target;
+        const id = lesserAmount.dataset.id;
+        const tempItem = cart.find(item => item.id === id);
+        tempItem.amount = tempItem.amount - 1;
+
+        if (tempItem.amount > 0) {
+          Storage.saveCart(cart);
+          this.setCartValues(cart);
+          lesserAmount.previousElementSibling.innerText = tempItem.amount;
+        } else {
+          cartContent.removeChild(lesserAmount.parentElement.parentElement);
+          this.removeItem(id);
+        }
+      }
+    });
   }
 
   clearCart() {
     const cartItems = cart.map(item => item.id);
     cartItems.forEach(id => this.removeItem(id));
+
+    while (cartContent.children.length > 0) {
+      cartContent.removeChild(cartContent.children[0]);
+    }
+
+    this.hideCart();
   }
 
   removeItem(id) {
@@ -182,7 +221,7 @@ class UI {
 
     const button = this.getSingleButton(id);
     button.disabled = false;
-    button.innerHTML = `<i class="fas fa-shopping-cart></i>add to cart"`;
+    button.innerHTML = `<i class="fas fa-shopping-cart"></i>add to cart`;
   }
 
   getSingleButton(id) {
