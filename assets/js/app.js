@@ -145,6 +145,49 @@ class UI {
     cartOverlay.classList.add('transparentBcg');
     cartDOM.classList.add('showCart');
   }
+
+  hideCart() {
+    cartOverlay.classList.remove('transparentBcg');
+    cartDOM.classList.remove('showCart');
+  }
+
+  setupApp() {
+    cart = Storage.getCart();
+    this.setCartValues(cart);
+    this.populateCart(cart);
+    cartBtn.addEventListener('click', this.showCart);
+    closeCartBtn.addEventListener('click', this.hideCart);
+  }
+
+  populateCart(cart) {
+    cart.forEach(item => this.addCartItem(item));
+  }
+
+  cartLogic() {
+    // clear cart button
+    clearCartBtn.addEventListener('click', () => this.clearCart());
+
+    // cart functionality
+  }
+
+  clearCart() {
+    const cartItems = cart.map(item => item.id);
+    cartItems.forEach(id => this.removeItem(id));
+  }
+
+  removeItem(id) {
+    cart = cart.filter(item => item.id !== id);
+    this.setCartValues(cart);
+    Storage.saveCart(cart);
+
+    const button = this.getSingleButton(id);
+    button.disabled = false;
+    button.innerHTML = `<i class="fas fa-shopping-cart></i>add to cart"`;
+  }
+
+  getSingleButton(id) {
+    return buttonsDOM.find(button => button.dataset.id === id);
+  }
 }
 
 // class responsible for local storage
@@ -161,6 +204,12 @@ class Storage {
   static saveCart(cart) {
     localStorage.setItem('cart', JSON.stringify(cart));
   }
+
+  static getCart() {
+    return localStorage.getItem('cart')
+      ? JSON.parse(localStorage.getItem('cart'))
+      : [];
+  }
 }
 
 // executing the methods after page loads
@@ -168,6 +217,9 @@ class Storage {
 document.addEventListener('DOMContentLoaded', () => {
   const ui = new UI();
   const product = new Products();
+
+  // setup application
+  ui.setupApp();
 
   //    get all products
   product
@@ -178,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(() => {
       ui.getBagButtons();
+      ui.cartLogic();
     });
 });
-
-// resume : 2:40
